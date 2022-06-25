@@ -1,5 +1,5 @@
 # gripper_control
-Repository containing code for Teensy microcontroller and ROS interface for transferring gripper commands and feedback data
+Repository containing code for Teensy microcontroller and ROS interface for transferring gripper commands and feedback data. The software is designed in a way to prevent occurence of the overcurrent in the Dynamixels and enable slippage detection.
 
 ## Requirements
 * python3
