@@ -16,6 +16,10 @@ Repository containing code for Teensy microcontroller and ROS interface for tran
 6. To control the gripper publish to the `/arm_1/gripper_command` topic, e.g. `rostopic pub /arm_1/gripper_command std_msgs/String "data: '0'"`
 7. To see the state of the gripper subscribe to the `/arm_1/gripper_feedback`, e.g. `rostopic echo /arm_1/gripper_feedback`.
 
+## Setting up the Dynamixel
+- Please follow the guide [here](https://emanual.robotis.com/docs/en/parts/interface/usb2dynamixel/).
+- For setting the baudrate install [here](https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_wizard2/).
+
 ## Usage
 * One can publish 0 (open) or 1 (close) command to the gripper.
 * One can subscribe the state of the gripper, the format consists of the following fields: `state` (`GRIPPER_CLOSE`, `OBJECT_GRASPED`, `OBJECT_SLIPPED`, `GRIPPER_OPEN`), `parsing_error` (0 - false, 1 - true), `last_command` (0, 1).
