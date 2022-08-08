@@ -63,10 +63,10 @@ bool set_up_dynamixel()
   bool result_l = false;
   bool result_r = false;
   
-  ax_bps = dxl.getPortBaud();
+  //ax_bps = dxl.getPortBaud();
 
   // Set Port baudrate. Should be 57600. Initializes Serial comms with DYNAMIXEL
-  dxl.begin(ax_bps);
+  dxl.begin(1000000);
   
   // Set Port Protocol Version. This has to match with DYNAMIXEL protocol version.
   dxl.setPortProtocolVersion(DXL_PROTOCOL_VERSION);
@@ -389,6 +389,7 @@ void send_feedback()
 // Microcontroller setup and loop functions //
 // -------------------------------- //
 void setup(){
+  DEBUG_SERIAL.begin(9600);
   bool result = false;
 
   // Initialize/Set up the microcontroller

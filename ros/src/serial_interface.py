@@ -49,7 +49,7 @@ class SerialInterface:
         Return:
             Message from the microcontroller in the json format.
         """
-        msg_str = self.board.readline()
+        msg_str = self.board.readline() 
         
         msg_str = msg_str.decode().strip()
         

@@ -35,7 +35,7 @@ class GripperController:
                 "command": 0,
         }
 
-        if command == 0:
+        if command == 1:
             rospy.logdebug('Closing the gripper.')
             json_command['command'] = 1
 
