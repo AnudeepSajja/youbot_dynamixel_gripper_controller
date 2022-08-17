@@ -14,7 +14,7 @@ const float DXL_PROTOCOL_VERSION = 1.0;
 /*Dynamixel Library*/
 int k=0; 
 int id; // Used to cycle through dynamixel IDs
-const int GRIPPER_VELOCITY = 45;  // Velocity of the gripper fingers
+const int GRIPPER_VELOCITY = 100;  // Velocity of the gripper fingers
                                   // 75 is too much and overcurrent occurs with the big objects
 const int POSITION_TOLERANCE = 5;  // Fixed pos tolerance
 const int SLIDING_WINDOW_SIZE = 10; // Fixed sliding window size
@@ -40,7 +40,7 @@ int parse_error = 0;
 int gripper_command = 0;
 
 // State machine variables
-enum States {GRIPPER_OPEN, GRIPPER_CLOSE, OBJECT_GRASPED, OBJECT_SLIPPED};
+enum States {GRIPPER_OPEN, GRIPPER_CLOSE, OBJECT_GRASPED, OBJECT_SLIPPED, GRIPPER_CLOSED};
 uint8_t state = GRIPPER_OPEN;
 long int curr_time = 0, last_time = millis();
 
@@ -155,6 +155,16 @@ void get_pos(int *pos) {
     
 }
 
+void get_pos_degrees(int *pos) {
+  /* Function to write the current position of the dynamixel motors
+   * to a given array
+   * Input:     [int*]
+   *            Array pointer in which the values are stored
+   */
+  for(int id = 1; id <= 2; id++){
+    pos[id-1] = dxl.getPresentPosition(id, UNIT_DEGREE);
+  }
+}
 
 void simple_movement(int desired_action[], int sliding_window_size = 10, int position_tolerance = 5, int minimum_movment = 3, int pos_offset = 2){
   /* Function to move the grippers to a particular position. In case the grippers are
@@ -261,7 +271,7 @@ void state_machine_run()
       // Checks if we missed the object
       if(is_close(curr_pos, GRIP_CLOSE)){   // May be problematic for thin objects
         // Add code to communicate this info to the ROS system
-        state = OBJECT_SLIPPED;
+        state = GRIPPER_CLOSED;
       }
       else{ 
         state = OBJECT_GRASPED;  
@@ -296,10 +306,14 @@ void state_machine_run()
  
     case OBJECT_SLIPPED:
       // Sends an error message to ROS system and transitions to GRIPPER_OPEN
-      state = GRIPPER_OPEN;
-      gripper_command = 0;
+      state = GRIPPER_CLOSE;
+      //gripper_command = 0;
       break;
-
+    
+    case GRIPPER_CLOSED:
+      if (gripper_command==0){
+        state = GRIPPER_OPEN; 
+      }
   }
 }
 
@@ -374,9 +388,16 @@ void send_feedback()
   else if(state==GRIPPER_CLOSE) feedback_message["state"] = "GRIPPER_CLOSE";
   else if(state==OBJECT_GRASPED) feedback_message["state"] = "OBJECT_GRASPED";
   else if(state==OBJECT_SLIPPED) feedback_message["state"] = "OBJECT_SLIPPED";
+  else if(state==GRIPPER_CLOSED) feedback_message["state"] = "GRIPPER_CLOSED";
 
   feedback_message["parsing_error"] = parse_error;
   feedback_message["last_command"] = gripper_command;
+
+  int pos[2] = {0};
+  get_pos_degrees(pos);
+  
+  feedback_message["left_gripper_pos"] = pos[0];
+  feedback_message["right_gripper_pos"] = pos[1];
 
   String feedback_message_str = JSON.stringify(feedback_message);
   feedback_message_str = feedback_message_str + "\n";
