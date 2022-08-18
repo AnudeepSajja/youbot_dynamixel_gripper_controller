@@ -17,7 +17,7 @@ int id; // Used to cycle through dynamixel IDs
 const int GRIPPER_VELOCITY = 100;  // Velocity of the gripper fingers
                                   // 75 is too much and overcurrent occurs with the big objects
 const int POSITION_TOLERANCE = 5;  // Fixed pos tolerance
-const int SLIDING_WINDOW_SIZE = 10; // Fixed sliding window size
+const int SLIDING_WINDOW_SIZE = 15; // Fixed sliding window size
 
 
 // Predefined states
@@ -297,7 +297,7 @@ void state_machine_run()
         // Check we have dropped the object
         if(is_close(curr_pos, GRIP_CLOSE)){   
           // May be problematic for thin objects
-          state = OBJECT_SLIPPED;
+          state = GRIPPER_CLOSE;
         }
         
         last_time = millis();
