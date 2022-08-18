@@ -40,7 +40,7 @@ int parse_error = 0;
 int gripper_command = 0;
 
 // State machine variables
-enum States {GRIPPER_OPEN, GRIPPER_CLOSE, OBJECT_GRASPED, OBJECT_SLIPPED, GRIPPER_CLOSED};
+enum States {GRIPPER_OPENING, GRIPPER_CLOSING, OBJECT_GRASPED, OBJECT_SLIPPED, GRIPPER_CLOSED, GRIPPER_OPEN};
 uint8_t state = GRIPPER_OPEN;
 long int curr_time = 0, last_time = millis();
 
@@ -249,16 +249,28 @@ void state_machine_run()
   
   switch(state)
   {
-    case GRIPPER_OPEN:
+    case GRIPPER_OPENING:
       // We make sure that the gripper is open
       simple_movement(GRIP_OPEN, SLIDING_WINDOW_SIZE, POSITION_TOLERANCE);
+      get_pos(curr_pos);
 
       if (gripper_command==1){
-        state = GRIPPER_CLOSE; 
+        state = GRIPPER_CLOSING; 
+      }
+      else if(is_close(curr_pos, GRIP_OPEN)){   // May be problematic for thin objects
+        // Add code to communicate this info to the ROS system
+        state = GRIPPER_OPEN;
+      }
+      break;
+      
+    case GRIPPER_OPEN:
+      // We make sure that the gripper is open
+      if (gripper_command==1){
+        state = GRIPPER_CLOSING; 
       }
       break;
        
-    case GRIPPER_CLOSE:
+    case GRIPPER_CLOSING:
       /* Code for closing gripper comes here, it can either succeed or fail
        * Success -> OBJECT_GRASPED
        * Fail -> OBJECT_SLIPPED (or MISSED)
@@ -286,8 +298,7 @@ void state_machine_run()
       
       if(gripper_command == 0){
         //DEBUG_SERIAL.println("Command received, dropping item in 2 secs");
-        state = GRIPPER_OPEN;
-        delay(2000);
+        state = GRIPPER_OPENING;
       }
       else if (curr_time - last_time > 1000){ 
         // Keep checking if object in hand every 1 secs
@@ -297,22 +308,16 @@ void state_machine_run()
         // Check we have dropped the object
         if(is_close(curr_pos, GRIP_CLOSE)){   
           // May be problematic for thin objects
-          state = GRIPPER_CLOSE;
+          state = GRIPPER_CLOSING;
         }
         
         last_time = millis();
       }
       break;
- 
-    case OBJECT_SLIPPED:
-      // Sends an error message to ROS system and transitions to GRIPPER_OPEN
-      state = GRIPPER_CLOSE;
-      //gripper_command = 0;
-      break;
     
     case GRIPPER_CLOSED:
       if (gripper_command==0){
-        state = GRIPPER_OPEN; 
+        state = GRIPPER_OPENING; 
       }
   }
 }
@@ -384,8 +389,9 @@ void send_feedback()
    */
   JSONVar feedback_message;
 
-  if(state==GRIPPER_OPEN) feedback_message["state"] = "GRIPPER_OPEN";
-  else if(state==GRIPPER_CLOSE) feedback_message["state"] = "GRIPPER_CLOSE";
+  if(state==GRIPPER_OPENING) feedback_message["state"] = "GRIPPER_OPENING";
+  else if(state==GRIPPER_OPEN) feedback_message["state"] = "GRIPPER_OPEN";
+  else if(state==GRIPPER_CLOSING) feedback_message["state"] = "GRIPPER_CLOSING";
   else if(state==OBJECT_GRASPED) feedback_message["state"] = "OBJECT_GRASPED";
   else if(state==OBJECT_SLIPPED) feedback_message["state"] = "OBJECT_SLIPPED";
   else if(state==GRIPPER_CLOSED) feedback_message["state"] = "GRIPPER_CLOSED";
