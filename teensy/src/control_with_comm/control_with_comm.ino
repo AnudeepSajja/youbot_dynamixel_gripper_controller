@@ -22,7 +22,7 @@ const int SLIDING_WINDOW_SIZE = 15; // Fixed sliding window size
 
 // Predefined states
 int GRIP_OPEN[2]={450,574};
-int GRIP_CLOSE[2]={562,462};
+int GRIP_CLOSE[2]={577,447};
 
 // To store the baudrate for DYNAMIXEL
 unsigned long ax_bps;
@@ -166,7 +166,15 @@ void get_pos_degrees(int *pos) {
   }
 }
 
-void simple_movement(int desired_action[], int sliding_window_size = 10, int position_tolerance = 5, int minimum_movment = 3, int pos_offset = 2){
+void simple_movement(int desired_action[]){
+  // Set Goal positions for both the DYNAMIXELs
+  for(int id=1;id<=2;id++)
+  {
+    dxl.setGoalPosition(id, desired_action[id-1]);
+  }
+ }
+  
+void careful_movement(int desired_action[], int sliding_window_size = 10, int position_tolerance = 5, int minimum_movment = 3, int pos_offset = 2){
   /* Function to move the grippers to a particular position. In case the grippers are
    * not able to move further due to some reason, the grippers are stopped to prevent
    * overheating
@@ -251,7 +259,8 @@ void state_machine_run()
   {
     case GRIPPER_OPENING:
       // We make sure that the gripper is open
-      simple_movement(GRIP_OPEN, SLIDING_WINDOW_SIZE, POSITION_TOLERANCE);
+      // careful_movement(GRIP_OPEN, SLIDING_WINDOW_SIZE, POSITION_TOLERANCE);
+      simple_movement(GRIP_OPEN);
       get_pos(curr_pos);
 
       if (gripper_command==1){
@@ -277,7 +286,7 @@ void state_machine_run()
       */
       
       //DEBUG_SERIAL.println("Current State = GRIPPER_CLOSE");
-      simple_movement(GRIP_CLOSE, SLIDING_WINDOW_SIZE, POSITION_TOLERANCE);
+      careful_movement(GRIP_CLOSE, SLIDING_WINDOW_SIZE, POSITION_TOLERANCE);
       get_pos(curr_pos);
 
       // Checks if we missed the object
@@ -302,7 +311,7 @@ void state_machine_run()
       }
       else if (curr_time - last_time > 1000){ 
         // Keep checking if object in hand every 1 secs
-        simple_movement(GRIP_CLOSE, SLIDING_WINDOW_SIZE, POSITION_TOLERANCE);
+        careful_movement(GRIP_CLOSE, SLIDING_WINDOW_SIZE, POSITION_TOLERANCE);
         get_pos(curr_pos);
 
         // Check we have dropped the object
