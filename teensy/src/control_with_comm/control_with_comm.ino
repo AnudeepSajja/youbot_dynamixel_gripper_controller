@@ -22,7 +22,7 @@ const int SLIDING_WINDOW_SIZE = 20; // Fixed sliding window size
 
 // Predefined states
 int GRIP_OPEN[2]={450,574};
-int GRIP_CLOSE[2]={577,447};
+int GRIP_CLOSE[2]= {573, 448}; //{577,447};
 
 // To store the baudrate for DYNAMIXEL
 unsigned long ax_bps;
@@ -47,6 +47,8 @@ long int curr_time = 0, last_time = millis();
 // Loop variables
 int iter = 0;
 int ITER_LIMIT = 1000;
+
+int global_pos[2] = {0};
 
 
 // --------------- //
@@ -132,6 +134,16 @@ void move_gripper_to_position(int desired_action[]){
   for(int id=1;id<=2;id++){
     dxl.setGoalPosition(id, desired_action[id-1]);
   }
+}
+
+bool is_closed(int curr_pos[], int desired_pos[]) {
+  /* Function to write the current position of the dynamixel motors
+   * to a given array
+   * Input:     [int*]
+   *            Array pointer in which the values are stored
+   */
+   int diff = curr_pos[0] - curr_pos[1];
+  return (new_abs(desired_pos[0] - curr_pos[0]) < POSITION_TOLERANCE) && (new_abs(desired_pos[1] - curr_pos[1]) < POSITION_TOLERANCE) || diff>119;
 }
 
 bool is_close(int curr_pos[], int desired_pos[]) {
@@ -290,12 +302,15 @@ void state_machine_run()
       get_pos(curr_pos);
 
       // Checks if we missed the object
-      if(is_close(curr_pos, GRIP_CLOSE)){   // May be problematic for thin objects
+      if(is_closed(curr_pos, GRIP_CLOSE)){   // May be problematic for thin objects
         // Add code to communicate this info to the ROS system
         state = GRIPPER_CLOSED;
       }
       else{ 
-        state = OBJECT_GRASPED;  
+        state = OBJECT_GRASPED;
+        //coping pos
+        global_pos[0] = curr_pos[0];
+        global_pos[1] = curr_pos[1]; 
       }
       break;
  
@@ -311,11 +326,14 @@ void state_machine_run()
       }
       else if (curr_time - last_time > 1000){ 
         // Keep checking if object in hand every 1 secs
-        careful_movement(GRIP_CLOSE, SLIDING_WINDOW_SIZE, POSITION_TOLERANCE);
+        //careful_movement(GRIP_CLOSE, SLIDING_WINDOW_SIZE, POSITION_TOLERANCE);
         get_pos(curr_pos);
 
         // Check we have dropped the object
-        if(is_close(curr_pos, GRIP_CLOSE)){   
+        if(is_closed(curr_pos, GRIP_CLOSE)){
+          state = GRIPPER_CLOSED;
+        }
+        else if(!is_close(curr_pos, global_pos)){   
           // May be problematic for thin objects
           state = GRIPPER_CLOSING;
         }
@@ -413,6 +431,7 @@ void send_feedback()
   
   feedback_message["left_gripper_pos"] = pos[0];
   feedback_message["right_gripper_pos"] = pos[1];
+  feedback_message["diff_encoders"] = pos[0] - pos[1];
 
   String feedback_message_str = JSON.stringify(feedback_message);
   feedback_message_str = feedback_message_str + "\n";
