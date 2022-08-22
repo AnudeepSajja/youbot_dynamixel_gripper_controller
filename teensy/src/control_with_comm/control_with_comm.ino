@@ -17,7 +17,7 @@ int id; // Used to cycle through dynamixel IDs
 const int GRIPPER_VELOCITY = 100;  // Velocity of the gripper fingers
                                   // 75 is too much and overcurrent occurs with the big objects
 const int POSITION_TOLERANCE = 5;  // Fixed pos tolerance
-const int SLIDING_WINDOW_SIZE = 15; // Fixed sliding window size
+const int SLIDING_WINDOW_SIZE = 20; // Fixed sliding window size
 
 
 // Predefined states
@@ -174,7 +174,7 @@ void simple_movement(int desired_action[]){
   }
  }
   
-void careful_movement(int desired_action[], int sliding_window_size = 10, int position_tolerance = 5, int minimum_movment = 3, int pos_offset = 2){
+void careful_movement(int desired_action[], int sliding_window_size = 10, int position_tolerance = 5, int minimum_movment = 2, int pos_offset = 2){
   /* Function to move the grippers to a particular position. In case the grippers are
    * not able to move further due to some reason, the grippers are stopped to prevent
    * overheating
@@ -235,7 +235,7 @@ void careful_movement(int desired_action[], int sliding_window_size = 10, int po
         int new_desired_action[2];
         new_desired_action[0] = dxl.getPresentPosition(1) + dir_motion[0]*(pos_offset + position_tolerance);
         new_desired_action[1] = dxl.getPresentPosition(2) + dir_motion[1]*(pos_offset + position_tolerance);
-        
+            
         move_gripper_to_position(new_desired_action);
         break;
       }
@@ -437,6 +437,8 @@ void setup(){
   
   // Set default velocity
   set_velocity(GRIPPER_VELOCITY);
+
+  simple_movement(GRIP_OPEN);
 }
  
 
