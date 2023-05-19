@@ -5,7 +5,7 @@ Repository containing code to control Dynamixel motor(s) (12A - Tested) with [Op
 1. Download [Arduino IDE](https://www.arduino.cc/en/software) (do not use Ubuntu software manager!).
 2. Open the IDE, go to `File->Preferences` and add the below line to the `Additional Boards Manager URLs`:
     ```
-    https://raw.githubusercontent.com/ROBOTIS-GIT/Dynamixel2Arduino/master/package_ROBOTIS-GIT_index.json
+    https://raw.githubusercontent.com/ROBOTIS-GIT/OpenRB-150/master/package_openrb_index.json
     ```
 3. Download libraries for Arduino IDE (Tools->Manage Libraries): 
     - Arduino SAMD Board Manager
