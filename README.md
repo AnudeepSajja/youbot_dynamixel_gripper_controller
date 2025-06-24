@@ -45,6 +45,8 @@ Repository containing code to control Dynamixel motor(s) (12A - Tested) with [Op
 * In the Message input window, you can send commands to control the gripper position:
   * `{"command": 0.0}` - open the gripper
   * `{"command": 1.0}` - close the gripper
+  * `{"command": 0.5}` - release the gripper, once the object is grassped, instead of completely opening it.
+  
   * You can also send the command to set the gripper position in the range [0.0, 1.0] (0.0 - open, 1.0 - close): `{"command": 0.5}`
   * If you want to further open the gripper, you can send command in the range [-1.5, 1.0]: `{"command": -1.0}`
 
